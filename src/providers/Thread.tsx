@@ -46,6 +46,7 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
   const [assistantId] = useQueryState("assistantId", {
     defaultValue: envAssistantId || "",
   });
+  const [currentThreadId, setThreadId] = useQueryState("threadId");
   const [threads, setThreads] = useState<Thread[]>([]);
   const [threadsLoading, setThreadsLoading] = useState(false);
 
@@ -68,9 +69,10 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
       if (!apiUrl || !assistantId) return;
       const client = createClient(apiUrl, getApiKey() ?? undefined);
       await client.threads.delete(threadId);
+      threadId === currentThreadId && await setThreadId(null);
       await getThreads().then(setThreads);
     },
-    [apiUrl, assistantId, getThreads],
+    [apiUrl, assistantId, getThreads, currentThreadId, setThreadId],
   );
 
   const value = {
