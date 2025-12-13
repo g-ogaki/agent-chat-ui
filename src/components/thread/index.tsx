@@ -22,6 +22,7 @@ import {
   SquarePen,
   XIcon,
   Plus,
+  LogOut,
 } from "lucide-react";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
@@ -45,6 +46,7 @@ import {
   ArtifactTitle,
   useArtifactContext,
 } from "./artifact";
+import { logout } from "@/app/actions/auth";
 
 function StickyToBottomContent(props: {
   content: ReactNode;
@@ -108,6 +110,20 @@ function OpenGitHubRepo() {
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
+  );
+}
+
+function Logout() {
+  return (
+    <TooltipIconButton
+      size="lg"
+      className="p-4 ml-2"
+      tooltip="Logout"
+      variant="ghost"
+      onClick={logout}
+    >
+      <LogOut className="size-5" />
+    </TooltipIconButton>
   );
 }
 
@@ -327,6 +343,7 @@ export function Thread() {
               </div>
               <div className="absolute top-2 right-4 flex items-center">
                 <OpenGitHubRepo />
+                <Logout />
               </div>
             </div>
           )}
@@ -383,6 +400,7 @@ export function Thread() {
                 >
                   <SquarePen className="size-5" />
                 </TooltipIconButton>
+                <Logout />
               </div>
 
               <div className="from-background to-background/0 absolute inset-x-0 top-full h-5 bg-gradient-to-b" />

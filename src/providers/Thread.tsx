@@ -19,6 +19,7 @@ interface ThreadContextType {
   setThreads: Dispatch<SetStateAction<Thread[]>>;
   threadsLoading: boolean;
   setThreadsLoading: Dispatch<SetStateAction<boolean>>;
+  deleteThread: (threadId: string) => Promise<void>;
 }
 
 const ThreadContext = createContext<ThreadContextType | undefined>(undefined);
@@ -34,8 +35,17 @@ function getThreadSearchMetadata(
 }
 
 export function ThreadProvider({ children }: { children: ReactNode }) {
-  const [apiUrl] = useQueryState("apiUrl");
-  const [assistantId] = useQueryState("assistantId");
+  // Get environment variables
+  const envApiUrl: string | undefined = process.env.NEXT_PUBLIC_API_URL;
+  const envAssistantId: string | undefined = process.env.NEXT_PUBLIC_ASSISTANT_ID;
+
+  // Use URL params with env var fallbacks
+  const [apiUrl] = useQueryState("apiUrl", {
+    defaultValue: envApiUrl || "",
+  });
+  const [assistantId] = useQueryState("assistantId", {
+    defaultValue: envAssistantId || "",
+  });
   const [threads, setThreads] = useState<Thread[]>([]);
   const [threadsLoading, setThreadsLoading] = useState(false);
 
@@ -53,12 +63,23 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
     return threads;
   }, [apiUrl, assistantId]);
 
+  const deleteThread = useCallback(
+    async (threadId: string) => {
+      if (!apiUrl || !assistantId) return;
+      const client = createClient(apiUrl, getApiKey() ?? undefined);
+      await client.threads.delete(threadId);
+      await getThreads().then(setThreads);
+    },
+    [apiUrl, assistantId, getThreads],
+  );
+
   const value = {
     getThreads,
     threads,
     setThreads,
     threadsLoading,
     setThreadsLoading,
+    deleteThread,
   };
 
   return (

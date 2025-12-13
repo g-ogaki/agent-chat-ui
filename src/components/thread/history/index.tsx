@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useThreads } from "@/providers/Thread";
 import { Thread } from "@langchain/langgraph-sdk";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { getContentString } from "../utils";
 import { useQueryState, parseAsBoolean } from "nuqs";
@@ -18,9 +18,11 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 function ThreadList({
   threads,
   onThreadClick,
+  onDelete,
 }: {
   threads: Thread[];
   onThreadClick?: (threadId: string) => void;
+  onDelete?: (threadId: string) => void;
 }) {
   const [threadId, setThreadId] = useQueryState("threadId");
 
@@ -41,11 +43,11 @@ function ThreadList({
         return (
           <div
             key={t.thread_id}
-            className="w-full px-1"
+            className="group flex w-full items-center justify-between px-1"
           >
             <Button
               variant="ghost"
-              className="w-[280px] items-start justify-start text-left font-normal"
+              className="flex-1 items-start justify-start text-left font-normal"
               onClick={(e) => {
                 e.preventDefault();
                 onThreadClick?.(t.thread_id);
@@ -54,6 +56,18 @@ function ThreadList({
               }}
             >
               <p className="truncate text-ellipsis">{itemText}</p>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hidden h-8 w-8 text-destructive opacity-0 group-hover:flex group-hover:opacity-100"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete?.(t.thread_id);
+              }}
+            >
+              <span className="sr-only">Delete</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-trash-2"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" /></svg>
             </Button>
           </div>
         );
@@ -82,8 +96,14 @@ export default function ThreadHistory() {
     parseAsBoolean.withDefault(false),
   );
 
-  const { getThreads, threads, setThreads, threadsLoading, setThreadsLoading } =
-    useThreads();
+  const {
+    getThreads,
+    threads,
+    setThreads,
+    threadsLoading,
+    setThreadsLoading,
+    deleteThread,
+  } = useThreads();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -93,6 +113,12 @@ export default function ThreadHistory() {
       .catch(console.error)
       .finally(() => setThreadsLoading(false));
   }, []);
+
+  const handleDelete = async (id: string) => {
+    setThreadsLoading(true);
+    await deleteThread(id);
+    setThreadsLoading(false);
+  };
 
   return (
     <>
@@ -116,7 +142,7 @@ export default function ThreadHistory() {
         {threadsLoading ? (
           <ThreadHistoryLoading />
         ) : (
-          <ThreadList threads={threads} />
+          <ThreadList threads={threads} onDelete={handleDelete} />
         )}
       </div>
       <div className="lg:hidden">
@@ -137,6 +163,7 @@ export default function ThreadHistory() {
             <ThreadList
               threads={threads}
               onThreadClick={() => setChatHistoryOpen((o) => !o)}
+              onDelete={handleDelete}
             />
           </SheetContent>
         </Sheet>
