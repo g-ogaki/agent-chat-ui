@@ -36,13 +36,12 @@ export default function LoginPage() {
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Email:
+            Username:
           </label>
           <input
-            name="email"
-            type="email"
+            name="username"
+            type="text"
             required
-            defaultValue="user@example.com"
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
@@ -54,7 +53,6 @@ export default function LoginPage() {
             name="password"
             type="password"
             required
-            defaultValue="password123"
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>

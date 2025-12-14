@@ -5,19 +5,19 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 export async function login(formData: FormData) {
-  const email = formData.get("email") as string;
+  const username = formData.get("username") as string;
   const password = formData.get("password") as string;
   const nextUrl = formData.get("next") as string;
 
   // 1. Validate credentials (Replace with real DB check)
-  if (email !== "user@example.com" || password !== "password123") {
+  if (password !== "password") {
     return { error: "Invalid credentials" };
   }
 
   // 2. Generate JWT
   // Note: We set expiration here to sync with cookie maxAge
   const expires = new Date(Date.now() + 60 * 60 * 1000) // 1 hour
-  const session = await encrypt({ userId: "123", email, expires });
+  const session = await encrypt({ username, expires });
 
   // 3. Set the cookie
   // httpOnly: true -> JavaScript cannot access it (Security agains XSS)
