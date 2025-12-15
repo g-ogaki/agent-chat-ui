@@ -47,7 +47,7 @@ function ThreadList({
           >
             <Button
               variant="ghost"
-              className="flex-1 items-start justify-start text-left font-normal"
+              className="flex-1 items-start justify-start text-left font-normal min-w-0"
               onClick={(e) => {
                 e.preventDefault();
                 onThreadClick?.(t.thread_id);
@@ -55,12 +55,12 @@ function ThreadList({
                 setThreadId(t.thread_id);
               }}
             >
-              <p className="truncate text-ellipsis">{itemText}</p>
+              <p className="truncate text-ellipsis overflow-hidden w-full">{itemText}</p>
             </Button>
             <Button
               variant="ghost"
               size="icon"
-              className="hidden h-8 w-8 text-destructive opacity-0 group-hover:flex group-hover:opacity-100"
+              className="hidden h-8 w-8 shrink-0 text-destructive opacity-0 group-hover:flex group-hover:opacity-100"
               onClick={(e) => {
                 e.stopPropagation();
                 onDelete?.(t.thread_id);
