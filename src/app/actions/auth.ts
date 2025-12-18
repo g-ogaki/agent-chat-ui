@@ -16,7 +16,7 @@ export async function login(formData: FormData) {
 
   // 2. Generate JWT
   // Note: We set expiration here to sync with cookie maxAge
-  const expires = new Date(Date.now() + 60 * 60 * 1000) // 1 hour
+  const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
   const session = await encrypt({ username, expires });
 
   // 3. Set the cookie

@@ -117,7 +117,7 @@ function Logout() {
   return (
     <TooltipIconButton
       size="lg"
-      className="p-4 ml-2"
+      className="ml-2 p-4"
       tooltip="Logout"
       variant="ghost"
       onClick={logout}

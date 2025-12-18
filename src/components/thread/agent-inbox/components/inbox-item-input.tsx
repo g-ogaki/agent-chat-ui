@@ -274,9 +274,8 @@ function EditAndOrAcceptComponent({
           defaultRows.current[k as keyof typeof defaultRows.current] ===
           undefined
         ) {
-          defaultRows.current[k as keyof typeof defaultRows.current] = !value.length
-            ? 3
-            : Math.max(value.length / 30, 7);
+          defaultRows.current[k as keyof typeof defaultRows.current] =
+            !value.length ? 3 : Math.max(value.length / 30, 7);
         }
         const numRows =
           defaultRows.current[k as keyof typeof defaultRows.current] || 8;
@@ -405,13 +404,13 @@ export function InboxItemInput({
           args:
             Array.isArray(change) && Array.isArray(key)
               ? {
-                ...response.args.args,
-                ...Object.fromEntries(key.map((k, i) => [k, change[i]])),
-              }
+                  ...response.args.args,
+                  ...Object.fromEntries(key.map((k, i) => [k, change[i]])),
+                }
               : {
-                ...response.args.args,
-                [key as string]: change as string,
-              },
+                  ...response.args.args,
+                  [key as string]: change as string,
+                },
         },
       };
       if (
