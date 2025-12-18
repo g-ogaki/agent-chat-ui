@@ -266,7 +266,7 @@ function EditAndOrAcceptComponent({
 
       {Object.entries(editResponse.args.args).map(([k, v], idx) => {
         const value = ["string", "number"].includes(typeof v)
-          ? v
+          ? String(v)
           : JSON.stringify(v, null);
         // Calculate the default number of rows by the total length of the initial value divided by 30
         // or 8, whichever is greater. Stored in a ref to prevent re-rendering.
@@ -274,9 +274,9 @@ function EditAndOrAcceptComponent({
           defaultRows.current[k as keyof typeof defaultRows.current] ===
           undefined
         ) {
-          defaultRows.current[k as keyof typeof defaultRows.current] = !v.length
+          defaultRows.current[k as keyof typeof defaultRows.current] = !value.length
             ? 3
-            : Math.max(v.length / 30, 7);
+            : Math.max(value.length / 30, 7);
         }
         const numRows =
           defaultRows.current[k as keyof typeof defaultRows.current] || 8;
@@ -405,13 +405,13 @@ export function InboxItemInput({
           args:
             Array.isArray(change) && Array.isArray(key)
               ? {
-                  ...response.args.args,
-                  ...Object.fromEntries(key.map((k, i) => [k, change[i]])),
-                }
+                ...response.args.args,
+                ...Object.fromEntries(key.map((k, i) => [k, change[i]])),
+              }
               : {
-                  ...response.args.args,
-                  [key as string]: change as string,
-                },
+                ...response.args.args,
+                [key as string]: change as string,
+              },
         },
       };
       if (
