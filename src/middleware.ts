@@ -20,5 +20,5 @@ export default async function middleware(req: NextRequest) {
 
 // Routes Middleware should run on
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|.*\\.png$).*)'],
+  matcher: ['/((?!healthcheck|_next/static|_next/image|.*\\.png$).*)'],
 };
