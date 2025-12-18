@@ -70,7 +70,7 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
       if (!apiUrl || !assistantId) return;
       const client = createClient(apiUrl, getApiKey() ?? undefined);
       await client.threads.delete(threadId);
-      threadId === currentThreadId && (await setThreadId(null));
+      if (threadId === currentThreadId) await setThreadId(null);
       await getThreads().then(setThreads);
     },
     [apiUrl, assistantId, getThreads, currentThreadId, setThreadId],

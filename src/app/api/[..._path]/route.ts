@@ -12,7 +12,7 @@ export const { GET, POST, PUT, PATCH, DELETE, OPTIONS, runtime } =
     disableWarningLog: true,
     headers: async (req) => {
       const session = req.cookies.get("session")?.value;
-      const { username } = await decrypt(session);
+      const username = session ? (await decrypt(session))?.username : "";
       return { Authorization: `Bearer ${username}` };
     },
   });
