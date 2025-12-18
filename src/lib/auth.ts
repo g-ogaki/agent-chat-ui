@@ -1,9 +1,14 @@
 import { jwtVerify, SignJWT, JWTPayload } from "jose";
+import { z } from "zod";
 
-interface SessionPayload extends JWTPayload {
-  username: string;
-  expires: Date;
-}
+const SessionPayloadSchema = z
+  .object({
+    username: z.string(),
+    expires: z.coerce.date(),
+  })
+  .passthrough();
+
+export type SessionPayload = z.infer<typeof SessionPayloadSchema> & JWTPayload;
 
 const secretKey = process.env.JWT_SECRET;
 const key = new TextEncoder().encode(secretKey);
@@ -25,7 +30,14 @@ export async function decrypt(
     const { payload } = await jwtVerify(input, key, {
       algorithms: ["HS256"],
     });
-    return payload as unknown as SessionPayload; // Todo: fix type
+
+    const parsed = SessionPayloadSchema.safeParse(payload);
+    if (!parsed.success) {
+      console.error("Invalid session payload:", parsed.error);
+      return null;
+    }
+
+    return parsed.data as SessionPayload;
   } catch (error) {
     console.error(error);
     return null;
