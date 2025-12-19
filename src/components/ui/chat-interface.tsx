@@ -5,18 +5,15 @@ import { StreamProvider } from "@/providers/Stream";
 import { ThreadProvider } from "@/providers/Thread";
 import { ArtifactProvider } from "@/components/thread/artifact";
 import { Toaster } from "@/components/ui/sonner";
-import { User, UserProvider } from "@/providers/User";
-import React from "react";
+import { SessionProvider } from "@/providers/Session";
+import { Suspense } from "react";
+import { SessionPayload } from "@/lib/auth";
 
-interface ChatInterfaceProps {
-  user: User | null;
-}
-
-export function ChatInterface({ user }: ChatInterfaceProps): React.ReactNode {
+export function ChatInterface({ session }: { session: SessionPayload | null }) {
   return (
-    <React.Suspense fallback={<div>Loading (layout)...</div>}>
+    <Suspense fallback={<div>Loading (layout)...</div>}>
       <Toaster />
-      <UserProvider user={user}>
+      <SessionProvider session={session}>
         <ThreadProvider>
           <StreamProvider>
             <ArtifactProvider>
@@ -24,7 +21,7 @@ export function ChatInterface({ user }: ChatInterfaceProps): React.ReactNode {
             </ArtifactProvider>
           </StreamProvider>
         </ThreadProvider>
-      </UserProvider>
-    </React.Suspense>
+      </SessionProvider>
+    </Suspense>
   );
 }

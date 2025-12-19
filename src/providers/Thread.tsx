@@ -12,6 +12,7 @@ import {
   SetStateAction,
 } from "react";
 import { createClient } from "./client";
+import { useSession } from "./Session";
 
 interface ThreadContextType {
   getThreads: () => Promise<Thread[]>;
@@ -34,8 +35,6 @@ function getThreadSearchMetadata(
   }
 }
 
-import { useUser } from "./User";
-
 // ... existing imports
 
 export function ThreadProvider({ children }: { children: ReactNode }) {
@@ -54,22 +53,22 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
   const [currentThreadId, setThreadId] = useQueryState("threadId");
   const [threads, setThreads] = useState<Thread[]>([]);
   const [threadsLoading, setThreadsLoading] = useState(false);
-  const user = useUser();
+  const session = useSession();
 
   const getThreads = useCallback(async (): Promise<Thread[]> => {
-    if (!apiUrl || !assistantId || !user) return []; // Ensure user is present
+    if (!apiUrl || !assistantId || !session) return []; // Ensure user is present
     const client = createClient(apiUrl, getApiKey() ?? undefined);
 
     const threads = await client.threads.search({
       metadata: {
-        owner: user.username,
+        owner: session.username,
         ...getThreadSearchMetadata(assistantId),
       },
       limit: 100,
     });
 
     return threads;
-  }, [apiUrl, assistantId, user]);
+  }, [apiUrl, assistantId, session]);
 
   const deleteThread = useCallback(
     async (threadId: string) => {

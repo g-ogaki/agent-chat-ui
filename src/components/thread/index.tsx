@@ -49,7 +49,7 @@ import {
 import { logout } from "@/app/actions/auth";
 import { createClient } from "@/providers/client";
 import { getApiKey } from "@/lib/api-key";
-import { useUser } from "@/providers/User";
+import { useSession } from "@/providers/Session";
 import { useThreads } from "@/providers/Thread";
 
 function StickyToBottomContent(props: {
@@ -157,7 +157,7 @@ export function Thread() {
     defaultValue: envAssistantId || "agent",
   });
 
-  const user = useUser();
+  const session = useSession();
   const { setThreads } = useThreads();
   const [input, setInput] = useState("");
   const [pendingMessage, setPendingMessage] = useState<{
@@ -256,11 +256,11 @@ export function Thread() {
     const submitMessage = async () => {
       let currentThreadId = threadId;
       if (!currentThreadId) {
-        if (!apiUrl || !assistantId || !user) return;
+        if (!apiUrl || !assistantId || !session?.username) return;
         const client = createClient(apiUrl, getApiKey() ?? undefined);
 
         const metadata: Record<string, any> = {
-          owner: user.username,
+          owner: session.username,
         };
 
         if (validate(assistantId)) {
@@ -321,7 +321,6 @@ export function Thread() {
     if (pendingMessage && threadId) {
       const { message, context } = pendingMessage;
 
-      console.log("Submit pending message to:", threadId);
       // We assume toolMessages are empty for a new thread
       setTimeout(() => {
         stream.submit(
