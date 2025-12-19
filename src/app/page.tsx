@@ -1,23 +1,17 @@
-"use client";
-
-import { Thread } from "@/components/thread";
-import { StreamProvider } from "@/providers/Stream";
-import { ThreadProvider } from "@/providers/Thread";
-import { ArtifactProvider } from "@/components/thread/artifact";
-import { Toaster } from "@/components/ui/sonner";
+import { ChatInterface } from "@/components/chat-interface";
+import { decrypt } from "@/lib/auth";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import React from "react";
 
-export default function DemoPage(): React.ReactNode {
-  return (
-    <React.Suspense fallback={<div>Loading (layout)...</div>}>
-      <Toaster />
-      <ThreadProvider>
-        <StreamProvider>
-          <ArtifactProvider>
-            <Thread />
-          </ArtifactProvider>
-        </StreamProvider>
-      </ThreadProvider>
-    </React.Suspense>
-  );
+export default async function DemoPage() {
+  const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get("session");
+  const session = await decrypt(sessionCookie?.value);
+
+  if (!session?.username) {
+    redirect("/login");
+  }
+
+  return <ChatInterface user={{ username: session.username }} />;
 }

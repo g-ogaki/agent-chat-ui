@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from "uuid";
+import { v4 as uuidv4, validate } from "uuid";
 import { ReactNode, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -47,6 +47,10 @@ import {
   useArtifactContext,
 } from "./artifact";
 import { logout } from "@/app/actions/auth";
+import { createClient } from "@/providers/client";
+import { getApiKey } from "@/lib/api-key";
+import { useUser } from "@/providers/User";
+import { useThreads } from "@/providers/Thread";
 
 function StickyToBottomContent(props: {
   content: ReactNode;
@@ -140,7 +144,26 @@ export function Thread() {
     "hideToolCalls",
     parseAsBoolean.withDefault(false),
   );
+
+  // Get environment variables to create client
+  const envApiUrl: string | undefined = process.env.NEXT_PUBLIC_API_URL;
+  const envAssistantId: string | undefined =
+    process.env.NEXT_PUBLIC_ASSISTANT_ID;
+
+  const [apiUrl] = useQueryState("apiUrl", {
+    defaultValue: envApiUrl || "",
+  });
+  const [assistantId] = useQueryState("assistantId", {
+    defaultValue: envAssistantId || "agent",
+  });
+
+  const user = useUser();
+  const { setThreads } = useThreads();
   const [input, setInput] = useState("");
+  const [pendingMessage, setPendingMessage] = useState<{
+    message: Message;
+    context: any;
+  } | null>(null);
   const {
     contentBlocks,
     setContentBlocks,
@@ -230,27 +253,98 @@ export function Thread() {
     const context =
       Object.keys(artifactContext).length > 0 ? artifactContext : undefined;
 
-    stream.submit(
-      { messages: [...toolMessages, newHumanMessage], context },
-      {
-        streamMode: ["values"],
-        streamSubgraphs: true,
-        streamResumable: true,
-        optimisticValues: (prev) => ({
+    const submitMessage = async () => {
+      let currentThreadId = threadId;
+      if (!currentThreadId) {
+        if (!apiUrl || !assistantId || !user) return;
+        const client = createClient(apiUrl, getApiKey() ?? undefined);
+
+        const metadata: Record<string, any> = {
+          owner: user.username,
+        };
+
+        if (validate(assistantId)) {
+          metadata.assistant_id = assistantId;
+          metadata.graph_id = "agent";
+        } else {
+          metadata.graph_id = assistantId;
+        }
+
+        const newThread = await client.threads.create({
+          metadata,
+        });
+
+        // Update thread list with initial message for immediate preview
+        setThreads((prev) => [
+          {
+            ...newThread,
+            values: { messages: [newHumanMessage] },
+          },
           ...prev,
-          context,
-          messages: [
-            ...(prev.messages ?? []),
-            ...toolMessages,
-            newHumanMessage,
-          ],
-        }),
-      },
-    );
+        ]);
+
+        currentThreadId = newThread.thread_id;
+
+        // Defer submission until re-render with new threadId
+        setPendingMessage({ message: newHumanMessage, context });
+        setThreadId(currentThreadId);
+        return;
+      }
+
+      stream.submit(
+        { messages: [...toolMessages, newHumanMessage], context },
+        {
+          threadId: currentThreadId, // Ensure we use the created thread ID
+          streamMode: ["values"],
+          streamSubgraphs: true,
+          streamResumable: true,
+          optimisticValues: (prev) => ({
+            ...prev,
+            context,
+            messages: [
+              ...(prev.messages ?? []),
+              ...toolMessages,
+              newHumanMessage,
+            ],
+          }),
+        },
+      );
+    };
+
+    submitMessage();
 
     setInput("");
     setContentBlocks([]);
   };
+
+  useEffect(() => {
+    if (pendingMessage && threadId) {
+      const { message, context } = pendingMessage;
+
+      console.log("Submit pending message to:", threadId);
+      // We assume toolMessages are empty for a new thread
+      setTimeout(() => {
+        stream.submit(
+          { messages: [message], context },
+          {
+            threadId: threadId,
+            streamMode: ["values"],
+            streamSubgraphs: true,
+            streamResumable: true,
+            optimisticValues: (prev) => ({
+              ...prev,
+              context,
+              messages: [
+                ...(prev.messages ?? []),
+                message,
+              ],
+            }),
+          },
+        );
+      }, 0);
+      setPendingMessage(null);
+    }
+  }, [pendingMessage, threadId, stream]);
 
   const handleRegenerate = (
     parentCheckpoint: Checkpoint | null | undefined,

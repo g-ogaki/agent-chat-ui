@@ -34,6 +34,10 @@ function getThreadSearchMetadata(
   }
 }
 
+import { useUser } from "./User";
+
+// ... existing imports
+
 export function ThreadProvider({ children }: { children: ReactNode }) {
   // Get environment variables
   const envApiUrl: string | undefined = process.env.NEXT_PUBLIC_API_URL;
@@ -50,20 +54,22 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
   const [currentThreadId, setThreadId] = useQueryState("threadId");
   const [threads, setThreads] = useState<Thread[]>([]);
   const [threadsLoading, setThreadsLoading] = useState(false);
+  const user = useUser();
 
   const getThreads = useCallback(async (): Promise<Thread[]> => {
-    if (!apiUrl || !assistantId) return [];
+    if (!apiUrl || !assistantId || !user) return []; // Ensure user is present
     const client = createClient(apiUrl, getApiKey() ?? undefined);
 
     const threads = await client.threads.search({
       metadata: {
+        owner: user.username,
         ...getThreadSearchMetadata(assistantId),
       },
       limit: 100,
     });
 
     return threads;
-  }, [apiUrl, assistantId]);
+  }, [apiUrl, assistantId, user]);
 
   const deleteThread = useCallback(
     async (threadId: string) => {
