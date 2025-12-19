@@ -6,13 +6,18 @@ import { decrypt } from "@/lib/auth";
 
 export const { GET, POST, PUT, PATCH, DELETE, OPTIONS, runtime } =
   initApiPassthrough({
-    apiUrl: process.env.LANGGRAPH_API_URL ?? "remove-me", // default, if not defined it will attempt to read process.env.LANGGRAPH_API_URL
-    apiKey: process.env.LANGSMITH_API_KEY ?? "remove-me", // default, if not defined it will attempt to read process.env.LANGSMITH_API_KEY
-    runtime: "edge", // default
+    apiUrl: process.env.LANGGRAPH_API_URL ?? "remove-me",
+    apiKey: process.env.LANGSMITH_API_KEY ?? "remove-me",
+    runtime: "edge",
     disableWarningLog: true,
-    headers: async (req) => {
-      const session = req.cookies.get("session")?.value;
-      const username = session ? (await decrypt(session))?.username : "";
-      return { Authorization: `Bearer ${username}` };
+    bodyParameters: async (req, body) => {
+      const session = await decrypt(req.cookies.get("session")?.value);
+      return {
+        ...body,
+        metadata: {
+          ...(body?.metadata || {}),
+          owner: session?.username
+        },
+      };
     },
   });

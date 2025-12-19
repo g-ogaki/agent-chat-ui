@@ -5,7 +5,7 @@ import { decrypt } from "@/lib/auth";
 export default async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
   const cookie = req.cookies.get("session")?.value;
-  const session = await decrypt(cookie).catch(() => null);
+  const session = await decrypt(cookie);
 
   if (path === "/login" || session) return NextResponse.next();
 
