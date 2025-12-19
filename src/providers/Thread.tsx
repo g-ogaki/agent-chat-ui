@@ -56,7 +56,7 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
   const session = useSession();
 
   const getThreads = useCallback(async (): Promise<Thread[]> => {
-    if (!apiUrl || !assistantId || !session) return []; // Ensure user is present
+    if (!apiUrl || !assistantId || !session?.username) return []; // Ensure user is present
     const client = createClient(apiUrl, getApiKey() ?? undefined);
 
     const threads = await client.threads.search({
@@ -68,7 +68,7 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
     });
 
     return threads;
-  }, [apiUrl, assistantId, session]);
+  }, [apiUrl, assistantId, session?.username]);
 
   const deleteThread = useCallback(
     async (threadId: string) => {
