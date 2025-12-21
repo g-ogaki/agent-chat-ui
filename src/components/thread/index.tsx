@@ -437,14 +437,22 @@ export function Thread() {
                     )}
                   {/* Special rendering case where there are no AI/tool messages, but there is an interrupt.
                     We need to render it outside of the messages list, since there are no messages to render */}
-                  {hasNoAIOrToolMessages && !!stream.interrupt && (
-                    <AssistantMessage
-                      key="interrupt-msg"
-                      message={undefined}
-                      isLoading={isLoading}
-                      handleRegenerate={handleRegenerate}
-                    />
-                  )}
+                  {!!stream.interrupt &&
+                    (!messages.length ||
+                      messages[messages.length - 1].type === "human" ||
+                      (messages[messages.length - 1].type === "tool" &&
+                        hideToolCalls) ||
+                      messages[messages.length - 1].id?.startsWith(
+                        DO_NOT_RENDER_ID_PREFIX,
+                      )) && (
+                      <AssistantMessage
+                        key="interrupt-msg"
+                        message={undefined}
+                        isLoading={isLoading}
+                        handleRegenerate={handleRegenerate}
+                        showInterrupt={true}
+                      />
+                    )}
                   {isLoading && !firstTokenReceived && (
                     <AssistantMessageLoading />
                   )}

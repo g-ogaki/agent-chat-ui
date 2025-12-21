@@ -71,22 +71,24 @@ interface InterruptProps {
   interruptValue?: unknown;
   isLastMessage: boolean;
   hasNoAIOrToolMessages: boolean;
+  showInterrupt?: boolean;
 }
 
 function Interrupt({
   interruptValue,
   isLastMessage,
   hasNoAIOrToolMessages,
+  showInterrupt,
 }: InterruptProps) {
   return (
     <>
       {isAgentInboxInterruptSchema(interruptValue) &&
-        (isLastMessage || hasNoAIOrToolMessages) && (
+        (isLastMessage || hasNoAIOrToolMessages || showInterrupt) && (
           <ThreadView interrupt={interruptValue} />
         )}
       {interruptValue &&
-      !isAgentInboxInterruptSchema(interruptValue) &&
-      (isLastMessage || hasNoAIOrToolMessages) ? (
+        !isAgentInboxInterruptSchema(interruptValue) &&
+        (isLastMessage || hasNoAIOrToolMessages || showInterrupt) ? (
         <GenericInterruptView interrupt={interruptValue} />
       ) : null}
     </>
@@ -97,10 +99,12 @@ export function AssistantMessage({
   message,
   isLoading,
   handleRegenerate,
+  showInterrupt,
 }: {
   message: Message | undefined;
   isLoading: boolean;
   handleRegenerate: (parentCheckpoint: Checkpoint | null | undefined) => void;
+  showInterrupt?: boolean;
 }) {
   const content = message?.content ?? [];
   const contentString = getContentString(content);
@@ -150,6 +154,7 @@ export function AssistantMessage({
               interruptValue={threadInterrupt?.value}
               isLastMessage={isLastMessage}
               hasNoAIOrToolMessages={hasNoAIOrToolMessages}
+              showInterrupt={showInterrupt}
             />
           </>
         ) : (
@@ -184,6 +189,7 @@ export function AssistantMessage({
               interruptValue={threadInterrupt?.value}
               isLastMessage={isLastMessage}
               hasNoAIOrToolMessages={hasNoAIOrToolMessages}
+              showInterrupt={showInterrupt}
             />
             <div
               className={cn(
